@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>산업혁명 시대 아동 노동자 시뮬레이션</title>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        const Heart = () => <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" /></svg>;
+        const Zap = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>;
+        const Coins = () => <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+        const Clock = () => <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>;
+        const Users = () => <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>;
+        const AlertCircle = () => <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" /></svg>;
+
+        const IndustrialChildLaborGame = () => {
+          const [gameState, setGameState] = useState('intro');
+          const [character, setCharacter] = useState(null);
+          const [health, setHealth] = useState(100);
+          const [energy, setEnergy] = useState(100);
+          const [money, setMoney] = useState(0);
+          const [day, setDay] = useState(1);
+          const [storyPath, setStoryPath] = useState([]);
+          const [hasInjury, setHasInjury] = useState(false);
+          const [hasDream, setHasDream] = useState(false);
+
+          const characters = {
+            tom: {
+              name: 'Tom',
+              age: 10,
+              job: 'Knotter (매듭공)',
+              workplace: '방직공장',
+              description: '실을 정리하고 엉킨 매듭을 푸는 일을 합니다. 하루 종일 서서 빠르게 움직이는 실을 다루어야 합니다.',
+              color: 'bg-blue-600'
+            },
+            mary: {
+              name: 'Mary',
+              age: 9,
+              job: 'Piecer (연결공)',
+              workplace: '방적공장',
+              description: '끊어진 실을 연결하는 일을 합니다. 위험하게 돌아가는 기계 사이로 손을 넣어 작업해야 합니다.',
+              color: 'bg-pink-600'
+            }
+          };
+
+          const Stats = () => (
+            <div className="bg-gray-800 p-4 rounded-lg mb-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-white font-bold">{character ? characters[character].name : ''}</span>
+                <span className="text-gray-300">Day {day}/7</span>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div className="flex items-center">
+                  <Heart />
+                  <div className="flex-1 ml-1">
+                    <div className="text-xs text-gray-400">건강</div>
+                    <div className="bg-gray-700 rounded-full h-2">
+                      <div className={`h-2 rounded-full ${health > 50 ? 'bg-green-500' : 'bg-red-500'}`} style={{width: `${health}%`}}></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <Zap />
+                  <div className="flex-1 ml-1">
+                    <div className="text-xs text-gray-400">체력</div>
+                    <div className="bg-gray-700 rounded-full h-2">
+                      <div className={`h-2 rounded-full ${energy > 50 ? 'bg-blue-500' : 'bg-orange-500'}`} style={{width: `${energy}%`}}></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center">
+                  <Coins />
+                  <div className="flex-1 ml-1">
+                    <div className="text-xs text-gray-400">수입</div>
+                    <div className="text-sm text-white font-bold">{money} 펜스</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+
+          const makeChoice = (choice) => {
+            const newPath = [...storyPath, choice];
+            setStoryPath(newPath);
+
+            if (choice === 'late') {
+              setEnergy(energy - 10);
+              setMoney(money - 2);
+              setGameState('work-speed-choice');
+            } else if (choice === 'ontime') {
+              setEnergy(energy - 20);
+              setGameState('work-speed-choice');
+            } else if (choice === 'fast') {
+              setEnergy(energy - 30);
+              setMoney(money + 5);
+              setGameState('injury-scene');
+              setHasInjury(true);
+            } else if (choice === 'safe') {
+              setEnergy(energy - 15);
+              setMoney(money + 3);
+              setGameState('injury-scene');
+            } else if (choice === 'paid-leave') {
+              setHealth(health + 20);
+              setMoney(money + 2);
+              setDay(day + 1);
+              setGameState('dream-choice');
+            } else if (choice === 'threaten') {
+              setHealth(health - 10);
+              setEnergy(energy - 20);
+              setGameState('continue-work-choice');
+            } else if (choice === 'fired') {
+              setGameState('fired-ending');
+            } else if (choice === 'dream-yes') {
+              setHasDream(true);
+              setGameState('sunday-school-choice');
+            } else if (choice === 'dream-no') {
+              setGameState('no-dream-ending');
+            } else if (choice === 'sunday-yes') {
+              setGameState('inventor-ending');
+            } else if (choice === 'sunday-no') {
+              setGameState('factory-worker-ending');
+            } else if (choice === 'continue-work') {
+              setGameState('dream-choice');
+            } else if (choice === 'quit-work') {
+              setGameState('quit-choice');
+            } else if (choice === 'begging') {
+              setHealth(health - 30);
+              setEnergy(energy - 20);
+              setGameState('begging-ending');
+            } else if (choice === 'apprentice') {
+              setHealth(health - 10);
+              setEnergy(energy - 15);
+              setMoney(money + 10);
+              setGameState('apprentice-ending');
+            } else if (choice === 'farm') {
+              setHealth(health + 10);
+              setEnergy(energy - 10);
+              setMoney(money + 3);
+              setGameState('farm-ending');
+            } else if (choice === 'servant') {
+              setHealth(health + 5);
+              setEnergy(energy - 15);
+              setMoney(money + 5);
+              setGameState('servant-ending');
+            }
+          };
+
+          const renderIntro = () => (
+            <div className="text-center">
+              <h1 className="text-4xl font-bold mb-4">산업혁명 시대</h1>
+              <h2 className="text-2xl mb-6">아동 노동자의 하루</h2>
+              <div className="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-6 text-left">
+                <div className="flex items-start">
+                  <AlertCircle />
+                  <div className="ml-2">
+                    <p className="font-bold text-yellow-800">1842년 영국 맨체스터</p>
+                    <p className="text-yellow-700 text-sm mt-1">
+                      산업혁명 시기, 수많은 어린이들이 위험한 공장에서 하루 12시간 이상 일했습니다. 
+                      이 게임을 통해 당시 아동 노동자들의 삶을 체험하고, 노동권의 중요성을 배워보세요.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => setGameState('character-select')}
+                className="bg-indigo-600 text-white px-8 py-3 rounded-lg hover:bg-indigo-700 transition-colors font-bold"
+              >
+                시작하기
+              </button>
+            </div>
+          );
+
+          const renderCharacterSelect = () => (
+            <div>
+              <h2 className="text-3xl font-bold mb-6 text-center">캐릭터를 선택하세요</h2>
+              <div className="grid md:grid-cols-2 gap-6">
+                {Object.entries(characters).map(([key, char]) => (
+                  <div
+                    key={key}
+                    className="border-2 border-gray-300 rounded-lg p-6 hover:border-indigo-500 hover:shadow-lg transition-all cursor-pointer"
+                    onClick={() => {
+                      setCharacter(key);
+                      setGameState('morning-choice');
+                    }}
+                  >
+                    <div className={`w-20 h-20 ${char.color} rounded-full mx-auto mb-4 flex items-center justify-center`}>
+                      <Users />
+                    </div>
+                    <h3 className="text-2xl font-bold text-center mb-2">{char.name}</h3>
+                    <p className="text-center text-gray-600 mb-4">나이: {char.age}세</p>
+                    <div className="bg-gray-50 p-4 rounded-lg mb-3">
+                      <p className="font-bold text-indigo-700 mb-1">{char.job}</p>
+                      <p className="text-sm text-gray-600">{char.workplace}</p>
+                    </div>
+                    <p className="text-sm text-gray-700 leading-relaxed">{char.description}</p>
+                    <button className="w-full mt-4 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                      {char.name} 선택하기
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+
+          const renderMorningChoice = () => (
+            <div>
+              <Stats />
+              <div className="bg-gray-50 p-6 rounded-lg mb-6">
+                <div className="flex justify-center mb-4">
+                  <Clock />
+                </div>
+                <h3 className="text-2xl font-bold mb-4">아침 5시</h3>
+                <p className="text-gray-700 leading-relaxed mb-4">
+                  새벽 종소리가 울립니다. 어젯밤 늦게까지 일해서 너무 피곤합니다. 
+                  {characters[character].name}은(는) 눈을 비비며 일어나야 할지 고민합니다.
+                </p>
+                <div className="bg-yellow-50 border-l-4 border-yellow-500 p-3">
+                  <p className="text-sm text-yellow-800">
+                    <strong>역사적 사실:</strong> 산업혁명 시기 아동 노동자들은 새벽 5시부터 저녁 7시까지, 
+                    하루 14시간 이상 일했습니다. 지각하면 임금이 삭감되거나 체벌을 받았습니다.
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <button
+                  onClick={() => makeChoice('ontime')}
+                  className="w-full bg-green-600 text-white p-4 rounded-lg hover:bg-green-700 transition-colors text-left"
+                >
+                  <div className="font-bold mb-1">서둘러 제시간에 출근한다</div>
+                  <div className="text-sm text-green-100">체력 -20, 임금 유지</div>
+                </button>
+                <button
+                  onClick={() => makeChoice('late')}
+                  className="w-full bg-orange-600 text-white p-4 rounded-lg hover:bg-orange-700 transition-colors text-left"
+                >
+                  <div className="font-bold mb-1">조금 더 자고 천천히 출근한다</div>
+                  <div className="text-sm text-orange-100">체력 -10, 임금 삭감 (-2펜스)</div>
+                </button>
+              </div>
+            </div>
+          );
+
+          const renderWorkSpeedChoice = () => (
+            <div>
+              <Stats />
+              <div className="bg-gray-50 p-6 rounded-lg mb-6">
+                <h3 className="text-2xl font-bold mb-4">공장 작업 중</h3>
+                <p className="text-gray-700 leading-relaxed mb-4">
+                  {character === 'mary' 
+                    ? '물레가 무서운 속도로 돌아가고 있습니다. 끊어진 실을 연결하려면 돌아가는 기계 사이로 손을 넣어야 합니다.'
+                    : '기계들이 쉴 새 없이 움직이고 있습니다. 엉킨 실을 빨리 풀어내지 않으면 감독관에게 혼이 납니다.'}
+                </p>
+                <div className="bg-red-50 border-l-4 border-red-500 p-3">
+                  <p className="text-sm text-red-800">
+                    <strong>위험:</strong> 당시 방적기와 방직기는 안전장치가 없었습니다. 
+                    많은 어린이들이 기계에 손가락이나 팔을 다쳤고, 심각한 경우 목숨을 잃기도 했습니다.
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <button
+                  onClick={() => makeChoice('fast')}
+                  className="w-full bg-red-600 text-white p-4 rounded-lg hover:bg-red-700 transition-colors text-left"
+                >
+                  <div className="font-bold mb-1">빠르게 일한다</div>
+                  <div className="text-sm text-red-100">임금 증가 (+5펜스), 부상 위험 높음, 체력 -30</div>
+                </button>
+                <button
+                  onClick={() => makeChoice('safe')}
+                  className="w-full bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700 transition-colors text-left"
+                >
+                  <div className="font-bold mb-1">조심하며 천천히 일한다</div>
+                  <div className="text-sm text-blue-100">임금 보통 (+3펜스), 체력 -15</div>
+                </button>
+              </div>
+            </div>
+          );
+
+          const renderInjuryScene = () => (
+            <div>
+              <Stats />
+              <div className="bg-red-50 p-6 rounded-lg mb-6 border-2 border-red-300">
+                <div className="flex justify-center mb-4">
+                  <AlertCircle />
+                </div>
+                <h3 className="text-2xl font-bold mb-4 text-red-800">사고 발생!</h3>
+                <p className="text-gray-700 leading-relaxed mb-4">
+                  {character === 'mary' 
+                    ? hasInjury 
+                      ? '빠르게 돌아가는 물레에 손이 말려들어갔습니다. 손가락에서 피가 나고 있습니다.'
+                      : '조심했지만 순간적으로 실수하여 기계에 손을 다쳤습니다. 다행히 큰 부상은 아닙니다.'
+                    : hasInjury
+                      ? '먼지와 섬유 찌꺼기로 가득한 공장에서 일한 결과, 심한 기침이 멈추지 않습니다.'
+                      : '오랜 시간 서서 일한 결과, 허리와 다리가 너무 아프고 기침도 심해졌습니다.'}
+                </p>
+                <div className="bg-gray-100 p-3 rounded">
+                  <p className="text-sm text-gray-700">
+                    감독관이 다가와 상황을 보고 있습니다. 공장주에게 어떻게 보고할까요?
+                  </p>
+                </div>
+              </div>
+              <p className="text-center font-bold mb-4 text-lg">
+                공장주는 {characters[character].name}에게 어떻게 대응할까요?
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={() => makeChoice('paid-leave')}
+                  className="w-full bg-green-600 text-white p-4 rounded-lg hover:bg-green-700 transition-colors text-left"
+                >
+                  <div className="font-bold mb-1">유급 휴가를 제공한다</div>
+                  <div className="text-sm text-green-100">건강 회복, 임금 유지</div>
+                </button>
+                <button
+                  onClick={() => makeChoice('threaten')}
+                  className="w-full bg-orange-600 text-white p-4 rounded-lg hover:bg-orange-700 transition-colors text-left"
+                >
+                  <div className="font-bold mb-1">
+                    {character === 'mary' ? '손을 치료한 후 얼른 다시 일하라고 윽박지른다' : '기침할 기운이 있으면 일을 하라고 윽박지른다'}
+                  </div>
+                  <div className="text-sm text-orange-100">건강 -10, 체력 -20</div>
+                </button>
+                <button
+                  onClick={() => makeChoice('fired')}
+                  className="w-full bg-red-600 text-white p-4 rounded-lg hover:bg-red-700 transition-colors text-left"
+                >
+                  <div className="font-bold mb-1">해고한다</div>
+                  <div className="text-sm text-red-100">수입 상실, 게임 종료</div>
+                </button>
+              </div>
+            </div>
+          );
+
+          const renderContinueWorkChoice = () => (
+            <div>
+              <Stats />
+              <div className="bg-gray-50 p-6 rounded-lg mb-6">
+                <h3 className="text-2xl font-bold mb-4">힘든 나날들</h3>
+                <p className="text-gray-700 leading-relaxed mb-4">
+                  공장주에게 혼나는 일이 많아졌습니다. 몸도 아프고 마음도 힘듭니다.
+                  {characters[character].name}은(는) 이 일을 계속해야 할지 고민합니다.
+                </p>
+                <div className="bg-blue-50 border-l-4 border-blue-500 p-3">
+                  <p className="text-sm text-blue-800">
+                    가족은 {characters[character].name}의 수입에 의존하고 있습니다. 
+                    하지만 이대로는 건강을 유지하기 어려울 것 같습니다.
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <button
+                  onClick={() => makeChoice('continue-work')}
+                  className="w-full bg-indigo-600 text-white p-4 rounded-lg hover:bg-indigo-700 transition-colors text-left"
+                >
+                  <div className="font-bold mb-1">가족을 위해 참고 일을 계속한다</div>
+                  <div className="text-sm text-indigo-100">스토리 계속 진행</div>
+                </button>
+                <button
+                  onClick={() => makeChoice('quit-work')}
+                  className="w-full bg-gray-600 text-white p-4 rounded-lg hover:bg-gray-700 transition-colors text-left"
+                >
+                  <div className="font-bold mb-1">일을 그만둔다</div>
+                  <div className="text-sm text-gray-100">다른 선택지 탐색</div>
+                </button>
+              </div>
+            </div>
+          );
+
+          const renderDreamChoice = () => (
+            <div>
+              <Stats />
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-lg mb-6">
+                <h3 className="text-2xl font-bold mb-4">쉬는 시간의 상상</h3>
+                <p className="text-gray-700 leading-relaxed mb-4">
+                  잠깐의 휴식 시간, {characters[character].name}은(는) 창밖을 바라보며 미래를 상상해봅니다.
+                  저 멀리 보이는 하늘처럼 자유로운 삶을 살 수 있을까요?
+                </p>
+                <div className="bg-white p-4 rounded-lg border border-purple-200">
+                  <p className="text-sm text-gray-600 italic">
+                    "나는 어떤 어른이 될까? 계속 이렇게 공장에서만 살게 될까?"
+                  </p>
+                </div>
+              </div>
+              <p className="text-center font-bold mb-4">무엇을 상상하시나요?</p>
+              <div className="space-y-3">
+                <button
+                  onClick={() => makeChoice('dream-yes')}
+                  className="w-full bg-purple-600 text-white p-4 rounded-lg hover:bg-purple-700 transition-colors text-left"
+                >
+                  <div className="font-bold mb-1">"나는 언젠가 이 기계를 더 멋지고 효율적으로 개량할 거야!"</div>
+                  <div className="text-sm text-purple-100">희망을 품고 발명가의 꿈을 꾼다</div>
+                </button>
+                <button
+                  onClick={() => makeChoice('dream-no')}
+                  className="w-full bg-gray-600 text-white p-4 rounded-lg hover:bg-gray-700 transition-colors text-left"
+                >
+                  <div className="font-bold mb-1">"꿈은 무슨. 당장 먹고 사는 일이 너무 급한걸. 헛된 망상이야."</div>
+                  <div className="text-sm text-gray-100">현실에 집중한다</div>
+                </button>
+              </div>
+            </div>
+          );
+
+          const renderSundaySchoolChoice = () => (
+            <div>
+              <Stats />
+              <div className="bg-blue-50 p-6 rounded-lg mb-6">
+                <h3 className="text-2xl font-bold mb-4">Sunday School 기회</h3>
+                <p className="text-gray-700 leading-relaxed mb-4">
+                  공장에서 운영하는 Sunday School에 참여할 수 있는 기회가 생겼습니다.
+                  일요일에도 쉬지 못하고 공부해야 하지만, 글자를 배우고 지식을 얻을 수 있습니다.
+                </p>
+                <div className="bg-yellow-50 border-l-4 border-yellow-500 p-3">
+                  <p className="text-sm text-yellow-800">
+                    <strong>역사적 배경:</strong> 19세기 영국에서는 일부 공장들이 노동자 자녀들을 위해 
+                    Sunday School을 운영했습니다. 이곳에서 읽기, 쓰기, 기초 산술을 배울 수 있었습니다.
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <button
+                  onClick={() => makeChoice('sunday-yes')}
+                  className="w-full bg-green-600 text-white p-4 rounded-lg hover:bg-green-700 transition-colors text-left"
+                >
+                  <div className="font-bold mb-1">Sunday School에 참여한다</div>
+                  <div className="text-sm text-green-100">교육의 기회를 잡는다</div>
+                </button>
+                <button
+                  onClick={() => makeChoice('sunday-no')}
+                  className="w-full bg-gray-600 text-white p-4 rounded-lg hover:bg-gray-700 transition-colors text-left"
+                >
+                  <div className="font-bold mb-1">참여하지 않는다</div>
+                  <div className="text-sm text-gray-100">쉬는 것이 더 중요하다</div>
+                </button>
+              </div>
+            </div>
+          );
+
+          const renderQuitChoice = () => (
+            <div>
+              <Stats />
+              <div className="bg-gray-50 p-6 rounded-lg mb-6">
+                <h3 className="text-2xl font-bold mb-4">공장을 떠나다</h3>
+                <p className="text-gray-700 leading-relaxed mb-4">
+                  {characters[character].name}은(는) 공장을 그만두고 집으로 돌아왔습니다.
+                  하지만 1840년대 영국에서 가난한 어린이가 할 수 있는 일은 많지 않았습니다.
+                </p>
+                <div className="bg-red-50 border-l-4 border-red-500 p-3">
+                  <p className="text-sm text-red-800">
+                    <strong>역사적 현실:</strong> 산업혁명 시기 도시의 가난한 아이들은 
+                    공장 노동 외에는 선택지가 거의 없었습니다.
+                  </p>
+                </div>
+              </div>
+              <p className="text-center font-bold mb-4">어떤 길을 선택하시겠습니까?</p>
+              <div className="space-y-3">
+                <button
+                  onClick={() => makeChoice('begging')}
+                  className="w-full bg-gray-600 text-white p-4 rounded-lg hover:bg-gray-700 transition-colors text-left"
+                >
+                  <div className="font-bold mb-1">거리에서 구걸한다</div>
+                  <div className="text-sm text-gray-100">가장 흔한 선택이었지만 위험했습니다</div>
+                </button>
+                <button
+                  onClick={() => makeChoice('apprentice')}
+                  className="w-full bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700 transition-colors text-left"
+                >
+                  <div className="font-bold mb-1">도제로 들어간다</div>
+                  <div className="text-sm text-blue-100">기술을 배울 수 있지만 학대받을 위험도 있었습니다</div>
+                </button>
+                <button
+                  onClick={() => makeChoice('farm')}
+                  className="w-full bg-green-600 text-white p-4 rounded-lg hover:bg-green-700 transition-colors text-left"
+                >
+                  <div className="font-bold mb-1">농장 일꾼이 된다</div>
+                  <div className="text-sm text-green-100">시골로 돌아가 농사일을 돕습니다</div>
+                </button>
+                <button
+                  onClick={() => makeChoice('servant')}
+                  className="w-full bg-purple-600 text-white p-4 rounded-lg hover:bg-purple-700 transition-colors text-left"
+                >
+                  <div className="font-bold mb-1">하인이 된다</div>
+                  <div className="text-sm text-purple-100">부유한 집안의 하인으로 일합니다</div>
+                </button>
+              </div>
+            </div>
+          );
+
+          const renderEnding = (type) => {
+            const endings = {
+              'inventor-ending': {
+                title: '발명가의 꿈을 이루다 ✨',
+                content: 'Sunday School에서 배운 지식 덕분에 기계에 대한 이해가 깊어졌습니다. 성인이 된 후, 더 안전하고 효율적인 방적기를 개발하여 많은 노동자들의 삶을 개선했습니다.',
+                lesson: '교육은 가난한 환경에서도 인생을 바꿀 수 있는 기회였습니다. 실제로 산업혁명 시기에도 일부 노동자들이 교육을 통해 기술자나 발명가가 되었습니다.',
+                color: 'from-green-500 to-emerald-600'
+              },
+              'factory-worker-ending': {
+                title: '평생 공장 노동자',
+                content: '휴식을 선택한 결과, 교육받을 기회를 놓쳤습니다. 성인이 된 후에도 계속 공장에서 일하며 평생을 보냈습니다.',
+                lesson: '당시 대부분의 아동 노동자들은 교육받지 못해 평생 저임금 노동자로 살았습니다. 이는 빈곤의 악순환을 만들었습니다.',
+                color: 'from-gray-500 to-gray-600'
+              },
+              'no-dream-ending': {
+                title: '현실의 벽',
+                content: '꿈을 포기하고 현실에 집중했습니다. 성실하게 일했지만 승진의 기회는 없었고, 평생 공장 노동자로 살아갔습니다.',
+                lesson: '산업혁명 초기에는 사회 계층 이동이 매우 어려웠습니다. 가난한 집안에서 태어난 아이들은 평생 가난에서 벗어나기 힘들었습니다.',
+                color: 'from-gray-500 to-slate-600'
+              },
+              'fired-ending': {
+                title: '해고당하다',
+                content: '부상을 입은 후 해고당했습니다. 다른 공장도 다친 아이를 고용하지 않았고, 가족은 더 큰 빈곤에 빠졌습니다.',
+                lesson: '당시에는 노동자 보호법이 없었습니다. 다친 노동자는 쉽게 해고되었고, 보상도 받지 못했습니다. 이후 노동운동과 법 개정을 통해 노동자의 권리가 점차 보호받게 되었습니다.',
+                color: 'from-red-500 to-red-700'
+              },
+              'begging-ending': {
+                title: '거리의 아이',
+                content: '거리에서 구걸하며 살았습니다. 겨울에는 추위와 배고픔에 시달렸고, 범죄에 연루될 위험도 높았습니다.',
+                lesson: '19세기 런던과 맨체스터의 거리에는 수천 명의 고아와 빈민 아동들이 있었습니다. 많은 아이들이 영양실조와 질병으로 목숨을 잃었습니다.',
+                color: 'from-gray-600 to-gray-800'
+              },
+              'apprentice-ending': {
+                title: '도제의 길',
+                content: '구두 수선공의 도제가 되었습니다. 힘들었지만 기술을 배워 나중에 독립할 수 있었습니다. 공장보다는 나은 삶을 살게 되었습니다.',
+                lesson: '도제 제도는 중세부터 내려온 전통적인 기술 교육 방식이었습니다. 운이 좋으면 좋은 장인을 만나 기술을 배울 수 있었지만, 학대받는 경우도 많았습니다.',
+                color: 'from-blue-500 to-blue-700'
+              },
+              'farm-ending': {
+                title: '농촌으로 돌아가다',
+                content: '시골 농장에서 일꾼으로 일했습니다. 공장만큼 위험하지는 않았지만, 임금은 더 적었고 가난은 계속되었습니다.',
+                lesson: '산업혁명으로 많은 사람들이 도시로 이주했지만, 일부는 농촌으로 돌아가기도 했습니다. 하지만 농촌도 기계화로 인해 일자리가 줄어들고 있었습니다.',
+                color: 'from-green-600 to-green-800'
+              },
+              'servant-ending': {
+                title: '하인의 삶',
+                content: '부유한 집안의 하인이 되었습니다. 숙식은 제공되었지만 자유가 없었고, 주인 가족의 요구에 항상 응해야 했습니다.',
+                lesson: '빅토리아 시대에는 많은 하인들이 있었습니다. 특히 여자 아이들은 가정부나 유모로 일하는 경우가 많았습니다. 대우는 집안마다 달랐습니다.',
+                color: 'from-purple-500 to-purple-700'
+              }
+            };
+
+            const ending = endings[type];
+            
+            return (
+              <div className="max-w-2xl mx-auto">
+                <div className={`bg-gradient-to-r ${ending.color} text-white p-8 rounded-lg mb-6`}>
+                  <h2 className="text-3xl font-bold mb-4 text-center">{ending.title}</h2>
+                  <p className="text-lg leading-relaxed mb-4">{ending.content}</p>
+                </div>
+                
+                <div className="bg-blue-50 border-l-4 border-blue-500 p-6 mb-6">
+                  <h3 className="font-bold text-blue-900 mb-2">💡 역사적 교훈</h3>
+                  <p className="text-blue-800 leading-relaxed">{ending.lesson}</p>
+                </div>
+
+                <div className="bg-gray-50 p-6 rounded-lg mb-6">
+                  <h3 className="font-bold text-gray-900 mb-3">🎮 게임 통계</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600">최종 건강</p>
+                      <p className="text-2xl font-bold text-gray-900">{health}%</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">최종 체력</p>
+                      <p className="text-2xl font-bold text-gray-900">{energy}%</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">총 수입</p>
+                      <p className="text-2xl font-bold text-gray-900">{money} 펜스</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">진행 일수</p>
+                      <p className="text-2xl font-bold text-gray-900">{day}일</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-yellow-50 p-6 rounded-lg mb-6">
+                  <h3 className="font-bold text-yellow-900 mb-3">📚 더 알아보기</h3>
+                  <p className="text-yellow-800 text-sm leading-relaxed mb-3">
+                    산업혁명 시기의 아동 노동 문제는 많은 사회 개혁가들의 노력으로 점차 개선되었습니다.
+                  </p>
+                  <ul className="text-sm text-yellow-800 space-y-2">
+                    <li>• <strong>1833년 공장법:</strong> 9세 미만 아동의 공장 노동 금지</li>
+                    <li>• <strong>1842년 광산법:</strong> 여성과 10세 미만 아동의 지하 광산 노동 금지</li>
+                    <li>• <strong>1847년 공장법:</strong> 여성과 아동의 하루 노동시간을 10시간으로 제한</li>
+                    <li>• <strong>1870년 교육법:</strong> 모든 아동에게 기초 교육 제공</li>
+                  </ul>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setGameState('intro');
+                    setCharacter(null);
+                    setHealth(100);
+                    setEnergy(100);
+                    setMoney(0);
+                    setDay(1);
+                    setStoryPath([]);
+                    setHasInjury(false);
+                    setHasDream(false);
+                  }}
+                  className="w-full bg-indigo-600 text-white py-4 rounded-lg hover:bg-indigo-700 transition-colors font-bold text-lg"
+                >
+                  다시 시작하기
+                </button>
+              </div>
+            );
+          };
+
+          return (
+            <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-50 p-4">
+              <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-2xl p-8 my-8">
+                {gameState === 'intro' && renderIntro()}
+                {gameState === 'character-select' && renderCharacterSelect()}
+                {gameState === 'morning-choice' && renderMorningChoice()}
+                {gameState === 'work-speed-choice' && renderWorkSpeedChoice()}
+                {gameState === 'injury-scene' && renderInjuryScene()}
+                {gameState === 'continue-work-choice' && renderContinueWorkChoice()}
+                {gameState === 'dream-choice' && renderDreamChoice()}
+                {gameState === 'sunday-school-choice' && renderSundaySchoolChoice()}
+                {gameState === 'quit-choice' && renderQuitChoice()}
+                {gameState.includes('-ending') && renderEnding(gameState)}
+              </div>
+              
+              <div className="max-w-4xl mx-auto mt-4 text-center text-sm text-gray-600">
+                <p>이 게임은 교육 목적으로 제작되었습니다.</p>
+                <p className="mt-1">산업혁명 시기의 역사적 사실을 바탕으로 구성되었습니다.</p>
+              </div>
+            </div>
+          );
+        };
+
+        ReactDOM.render(<IndustrialChildLaborGame />, document.getElementById('root'));
+    </script>
+</body>
+</html>
